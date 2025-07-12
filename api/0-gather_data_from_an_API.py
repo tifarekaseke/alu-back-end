@@ -9,17 +9,15 @@ import sys
 
 
 def get_employee_progress(employee_id):
-
     user_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-    todos_url = (
-        f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
-    )
+    todos_url = f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
 
     user_response = requests.get(user_url)
-    if user_response.status_code == 200:
-        employee_name = user_response.json().get("name")
-    else:
+    if user_response.status_code != 200:
         print(f"Employee with ID {employee_id} not found.")
+        return
+
+    employee_name = user_response.json().get("name")
 
     todos_response = requests.get(todos_url)
     todos = todos_response.json()
@@ -28,10 +26,13 @@ def get_employee_progress(employee_id):
     total_tasks = len(todos)
     done_tasks = len(completed_tasks)
 
-    print(f"Employee {employee_name} is done with tasks"
-          f"({done_tasks}/{total_tasks}):")
-    for task in completed_tasks:
-        print(f"\t {task.get('title')}")
+    # Correct first line format
+    print(f"Employee {employee_name} is done with tasks ({done_tasks}/{total_tasks}):")
+
+    # Print all tasks, formatted with checkboxes
+    for task in todos:
+        checkbox = "[X]" if task.get("completed") else "[ ]"
+        print(f"\t {checkbox} {task.get('title')}")
 
 
 if __name__ == "__main__":
@@ -41,6 +42,11 @@ if __name__ == "__main__":
 
     try:
         employee_id = int(sys.argv[1])
+        get_employee_progress(employee_id)
+    except ValueError:
+        print("Please provide a valid integer for employee ID.")
+        sys.exit(1)
+
         get_employee_progress(employee_id)
     except ValueError:
         print("Please provide a valid integer for employee ID.")
